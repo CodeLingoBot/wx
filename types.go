@@ -12,7 +12,7 @@ type WxAutoMsg struct {
 	CreateTime   int    `xml:"CreateTime"`
 	MsgType      string `xml:"MsgType"`
 	Content      string `xml:"Content"`
-	MsgId        string `xml:"MsgId"`
+	MsgID        string `xml:"MsgId"`
 }
 
 type StoreMsg struct {
