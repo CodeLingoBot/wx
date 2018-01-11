@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/morya/utils/log"
 	"testing"
+
+	"github.com/morya/utils/log"
 )
 
 func TestOK(t *testing.T) {

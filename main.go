@@ -65,7 +65,6 @@ func PostHandler(c echo.Context) error {
 	if err != nil {
 		log.Info(err)
 		return c.String(http.StatusOK, "success")
-
 	}
 	log.Infof("xml unmashal succ %v", recv)
 	send.FromUserName = recv.ToUserName
