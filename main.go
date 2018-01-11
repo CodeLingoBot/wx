@@ -40,14 +40,22 @@ func Parse(m *StoreMsg, val string, buy, sell string) {
 	m.Sell = sellInt
 }
 
-func GetLastStatus() string {
+func GetLastStatus(symbol string) string {
 	c := redis.NewClient(&redis.Options{
 		Addr: "127.0.0.1:6379",
 	})
 	var m = &StoreMsg{}
-	jsonData, _ := c.Get("bch_usdt_last").Result()
-	buy, _ := c.Get("bch_usdt_buy").Result()
-	sell, _ := c.Get("bch_usdt_sell").Result()
+
+    if symbol == "" {
+        symbol = "eos_usdt"
+    }
+    key_last := fmt.Sprintf("_last", symbol)
+    key_buy := fmt.Sprintf("_buy", symbol)
+    key_sell := fmt.Sprintf("_sell", symbol)
+
+	jsonData, _ := c.Get(key_last).Result()
+	buy, _ := c.Get(key_buy).Result()
+	sell, _ := c.Get(key_sell).Result()
 
 	Parse(m, jsonData, buy, sell)
 
