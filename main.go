@@ -78,7 +78,7 @@ func PostHandler(c echo.Context) error {
 	log.Infof("xml unmashal succ %v", recv)
 	send.FromUserName = recv.ToUserName
 	send.ToUserName = recv.FromUserName
-	send.MsgId = recv.MsgId
+	send.MsgID = recv.MsgID
 	send.CreateTime = recv.CreateTime
 	send.MsgType = recv.MsgType
 
