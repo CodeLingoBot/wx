@@ -82,8 +82,8 @@ func OnTextMsg(recv *WxAutoMsg) (send *WxAutoMsg) {
 	} else {
         content := strings.ToLower(recv.Content)
 		switch {
-		case strings.Contains(content, "eos"):
-			send.Content = GetLastStatus("eos_usdt")
+		case strings.Contains(content, "ltc"):
+			send.Content = GetLastStatus("ltc_usdt")
 
 		case strings.Contains(content, "bch"):
 			send.Content = GetLastStatus("bch_usdt")
