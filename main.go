@@ -63,12 +63,12 @@ func GetLastStatus(symbol string) string {
 	return string(bindata)
 }
 
-func DumpObj(obj interface{}){
-    data, _ := json.Marshal(obj)
-    log.Infof("%s", data)
+func DumpObj(obj interface{}) {
+	data, _ := json.Marshal(obj)
+	log.Infof("%s", data)
 }
 
-func OnTextMsg(recv *WxAutoMsg) (send * WxAutoMsg) {
+func OnTextMsg(recv *WxAutoMsg) (send *WxAutoMsg) {
 	send = &WxAutoMsg{}
 	send.FromUserName = recv.ToUserName
 	send.ToUserName = recv.FromUserName
@@ -79,17 +79,21 @@ func OnTextMsg(recv *WxAutoMsg) (send * WxAutoMsg) {
 	if recv.FromUserName != myself {
 		send.Content = fmt.Sprintf("bye bye")
 	} else {
-		switch send.Content {
+		switch recv.Content {
 		case "eos":
 			send.Content = GetLastStatus("eos_usdt")
+            log.Info(recv.Content)
+
 		case "bch":
 			send.Content = GetLastStatus("bch_usdt")
+            log.Info(recv.Content)
 
-        default:
+		default:
 			send.Content = GetLastStatus("eos_usdt")
+            log.Info(recv.Content)
 		}
 	}
-    return
+	return
 }
 
 func PostHandler(c echo.Context) error {
@@ -101,9 +105,9 @@ func PostHandler(c echo.Context) error {
 		log.Info(err)
 		return c.String(http.StatusOK, "success")
 	}
-    DumpObj(recv)
-    send := OnTextMsg(recv)
-    DumpObj(send)
+	DumpObj(recv)
+	send := OnTextMsg(recv)
+	DumpObj(send)
 	return c.XML(http.StatusOK, send)
 }
 
@@ -124,4 +128,3 @@ func main() {
 
 	e.Logger.Fatal(e.Start(*flagListenAddr))
 }
-
