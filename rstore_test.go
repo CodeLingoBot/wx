@@ -6,6 +6,6 @@ import (
 )
 
 func TestOK(t *testing.T) {
-	v := GetLastStatus()
+	v := GetLastStatus("eos_usdt")
 	log.Infof(v)
 }

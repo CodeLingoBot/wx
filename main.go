@@ -31,7 +31,7 @@ func GetHandler(c echo.Context) error {
 func Parse(m *StoreMsg, val string, buy, sell string) {
 	err := json.Unmarshal([]byte(val), m)
 	if err != nil {
-		log.Info(err)
+		log.InfoErrorf(err, "%s", val)
 	}
 	buyInt, _ := strconv.Atoi(buy)
 	sellInt, _ := strconv.Atoi(sell)
@@ -46,12 +46,12 @@ func GetLastStatus(symbol string) string {
 	})
 	var m = &StoreMsg{}
 
-    if symbol == "" {
-        symbol = "eos_usdt"
-    }
-    key_last := fmt.Sprintf("_last", symbol)
-    key_buy := fmt.Sprintf("_buy", symbol)
-    key_sell := fmt.Sprintf("_sell", symbol)
+	if symbol == "" {
+		return "unknown symbol"
+	}
+	key_last := fmt.Sprintf("%s_last", symbol)
+	key_buy := fmt.Sprintf("%s_buy", symbol)
+	key_sell := fmt.Sprintf("%s_sell", symbol)
 
 	jsonData, _ := c.Get(key_last).Result()
 	buy, _ := c.Get(key_buy).Result()
@@ -63,19 +63,13 @@ func GetLastStatus(symbol string) string {
 	return string(bindata)
 }
 
-func PostHandler(c echo.Context) error {
-	bindata, _ := ioutil.ReadAll(c.Request().Body)
+func DumpObj(obj interface{}){
+    data, _ := json.Marshal(obj)
+    log.Infof("%s", data)
+}
 
-	recv := &WxAutoMsg{}
-	send := &WxAutoMsg{}
-
-	err := xml.Unmarshal(bindata, recv)
-	if err != nil {
-		log.Info(err)
-		return c.String(http.StatusOK, "success")
-
-	}
-	log.Infof("xml unmashal succ %v", recv)
+func OnTextMsg(recv *WxAutoMsg) (send * WxAutoMsg) {
+	send = &WxAutoMsg{}
 	send.FromUserName = recv.ToUserName
 	send.ToUserName = recv.FromUserName
 	send.MsgID = recv.MsgID
@@ -85,10 +79,31 @@ func PostHandler(c echo.Context) error {
 	if recv.FromUserName != myself {
 		send.Content = fmt.Sprintf("bye bye")
 	} else {
-		send.Content = GetLastStatus()
-	}
+		switch send.Content {
+		case "eos":
+			send.Content = GetLastStatus("eos_usdt")
+		case "bch":
+			send.Content = GetLastStatus("bch_usdt")
 
-	log.Infof(" build resp %#v", send)
+        default:
+			send.Content = GetLastStatus("eos_usdt")
+		}
+	}
+    return
+}
+
+func PostHandler(c echo.Context) error {
+	bindata, _ := ioutil.ReadAll(c.Request().Body)
+
+	recv := &WxAutoMsg{}
+	err := xml.Unmarshal(bindata, recv)
+	if err != nil {
+		log.Info(err)
+		return c.String(http.StatusOK, "success")
+	}
+    DumpObj(recv)
+    send := OnTextMsg(recv)
+    DumpObj(send)
 	return c.XML(http.StatusOK, send)
 }
 
@@ -109,3 +124,4 @@ func main() {
 
 	e.Logger.Fatal(e.Start(*flagListenAddr))
 }
+
