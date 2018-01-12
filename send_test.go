@@ -13,7 +13,7 @@ func TestSendMsg(t *testing.T) {
 <FromUserName><![CDATA[%s]]></FromUserName>
 <CreateTime>1514900785</CreateTime>
 <MsgType><![CDATA[text]]></MsgType>
-<Content><![CDATA[eos]]></Content>
+<Content><![CDATA[Eos]]></Content>
 <MsgId>6506449328693625983</MsgId>
 </xml>`, myself)
 	recv := &WxAutoMsg{}

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+    "strings"
 
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
@@ -79,18 +80,16 @@ func OnTextMsg(recv *WxAutoMsg) (send *WxAutoMsg) {
 	if recv.FromUserName != myself {
 		send.Content = fmt.Sprintf("bye bye")
 	} else {
-		switch recv.Content {
-		case "eos":
+        content := strings.ToLower(recv.Content)
+		switch {
+		case strings.Contains(content, "eos"):
 			send.Content = GetLastStatus("eos_usdt")
-            log.Info(recv.Content)
 
-		case "bch":
+		case strings.Contains(content, "bch"):
 			send.Content = GetLastStatus("bch_usdt")
-            log.Info(recv.Content)
 
 		default:
 			send.Content = GetLastStatus("eos_usdt")
-            log.Info(recv.Content)
 		}
 	}
 	return
