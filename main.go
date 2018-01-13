@@ -20,10 +20,6 @@ var (
 	flagListenAddr = flag.String("listen", "0.0.0.0:7400", "listen address")
 )
 
-const (
-	myself = "o-A1l03mCLRjTP09Z6UZdOVLUBLs"
-)
-
 func GetHandler(c echo.Context) error {
 	echostr := c.FormValue("echostr")
 	return c.String(http.StatusOK, echostr)
@@ -69,6 +65,24 @@ func DumpObj(obj interface{}) {
 	log.Infof("%s", data)
 }
 
+func OnContent(user string, content string) (reply string) {
+    if ! IsValidUser(user) {
+        reply = "bye bye"
+        return
+	}
+    content = strings.ToLower(content)
+    switch {
+    case strings.Contains(content, "ltc"):
+        reply = GetLastStatus("ltc_usdt")
+
+    case strings.Contains(content, "bch"):
+        reply = GetLastStatus("bch_usdt")
+
+    default:
+        reply = GetLastStatus("eos_usdt")
+    }
+}
+
 func OnTextMsg(recv *WxAutoMsg) (send *WxAutoMsg) {
 	send = &WxAutoMsg{}
 	send.FromUserName = recv.ToUserName
@@ -77,21 +91,7 @@ func OnTextMsg(recv *WxAutoMsg) (send *WxAutoMsg) {
 	send.CreateTime = recv.CreateTime
 	send.MsgType = recv.MsgType
 
-	if recv.FromUserName != myself {
-		send.Content = fmt.Sprintf("bye bye")
-	} else {
-        content := strings.ToLower(recv.Content)
-		switch {
-		case strings.Contains(content, "ltc"):
-			send.Content = GetLastStatus("ltc_usdt")
-
-		case strings.Contains(content, "bch"):
-			send.Content = GetLastStatus("bch_usdt")
-
-		default:
-			send.Content = GetLastStatus("eos_usdt")
-		}
-	}
+    send.Content = OnContent(recv.FromUserName, recv.Content)
 	return
 }
 

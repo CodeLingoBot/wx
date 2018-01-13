@@ -6,6 +6,12 @@ import (
 )
 
 func TestOK(t *testing.T) {
-	v := GetLastStatus("eos_usdt")
-	log.Infof(v)
+    var symbols = []string{
+        "eos_usdt",
+        "ltc_usdt",
+    }
+    for _, s := range symbols {
+        v := GetLastStatus(s)
+        log.Infof(v)
+    }
 }
