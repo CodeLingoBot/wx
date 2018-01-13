@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
@@ -19,10 +20,6 @@ var (
 	flagListenAddr = flag.String("listen", "0.0.0.0:7400", "listen address")
 )
 
-const (
-	myself = "o-A1l03mCLRjTP09Z6UZdOVLUBLs"
-)
-
 func GetHandler(c echo.Context) error {
 	echostr := c.FormValue("echostr")
 	return c.String(http.StatusOK, echostr)
@@ -31,7 +28,7 @@ func GetHandler(c echo.Context) error {
 func Parse(m *StoreMsg, val string, buy, sell string) {
 	err := json.Unmarshal([]byte(val), m)
 	if err != nil {
-		log.Info(err)
+		log.InfoErrorf(err, "%s", val)
 	}
 	buyInt, _ := strconv.Atoi(buy)
 	sellInt, _ := strconv.Atoi(sell)
@@ -46,12 +43,12 @@ func GetLastStatus(symbol string) string {
 	})
 	var m = &StoreMsg{}
 
-    if symbol == "" {
-        symbol = "eos_usdt"
-    }
-    key_last := fmt.Sprintf("_last", symbol)
-    key_buy := fmt.Sprintf("_buy", symbol)
-    key_sell := fmt.Sprintf("_sell", symbol)
+	if symbol == "" {
+		return "unknown symbol"
+	}
+	key_last := fmt.Sprintf("%s_last", symbol)
+	key_buy := fmt.Sprintf("%s_buy", symbol)
+	key_sell := fmt.Sprintf("%s_sell", symbol)
 
 	jsonData, _ := c.Get(key_last).Result()
 	buy, _ := c.Get(key_buy).Result()
@@ -63,31 +60,54 @@ func GetLastStatus(symbol string) string {
 	return string(bindata)
 }
 
-func PostHandler(c echo.Context) error {
-	bindata, _ := ioutil.ReadAll(c.Request().Body)
+func DumpObj(obj interface{}) {
+	data, _ := json.Marshal(obj)
+	log.Infof("%s", data)
+}
 
-	recv := &WxAutoMsg{}
-	send := &WxAutoMsg{}
-
-	err := xml.Unmarshal(bindata, recv)
-	if err != nil {
-		log.Info(err)
-		return c.String(http.StatusOK, "success")
+func OnContent(user string, content string) (reply string) {
+	if !IsValidUser(user) {
+		reply = "bye bye"
+		return
 	}
-	log.Infof("xml unmashal succ %v", recv)
+	content = strings.ToLower(content)
+	switch {
+	case strings.Contains(content, "ltc"):
+		reply = GetLastStatus("ltc_usdt")
+
+	case strings.Contains(content, "bch"):
+		reply = GetLastStatus("bch_usdt")
+
+	default:
+		reply = GetLastStatus("eos_usdt")
+	}
+	return
+}
+
+func OnTextMsg(recv *WxAutoMsg) (send *WxAutoMsg) {
+	send = &WxAutoMsg{}
 	send.FromUserName = recv.ToUserName
 	send.ToUserName = recv.FromUserName
 	send.MsgID = recv.MsgID
 	send.CreateTime = recv.CreateTime
 	send.MsgType = recv.MsgType
 
-	if recv.FromUserName != myself {
-		send.Content = fmt.Sprintf("bye bye")
-	} else {
-		send.Content = GetLastStatus()
-	}
+	send.Content = OnContent(recv.FromUserName, recv.Content)
+	return
+}
 
-	log.Infof(" build resp %#v", send)
+func PostHandler(c echo.Context) error {
+	bindata, _ := ioutil.ReadAll(c.Request().Body)
+
+	recv := &WxAutoMsg{}
+	err := xml.Unmarshal(bindata, recv)
+	if err != nil {
+		log.Info(err)
+		return c.String(http.StatusOK, "success")
+	}
+	DumpObj(recv)
+	send := OnTextMsg(recv)
+	DumpObj(send)
 	return c.XML(http.StatusOK, send)
 }
 

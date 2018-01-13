@@ -18,7 +18,7 @@ type WxAutoMsg struct {
 type StoreMsg struct {
 	Curr   float64 `json:"curr"`
 	God    float64 `json:"god"`
-	Step   int     `json:"step"`
+	Step   float64 `json:"step"`
 	Action string  `json:"action"`
 	Diff   float64 `json:"diff"`
 	Now    string  `json:"now"`
