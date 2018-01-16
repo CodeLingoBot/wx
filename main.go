@@ -70,6 +70,9 @@ func OnContent(user string, content string) (reply string) {
 		reply = "bye bye"
 		return
 	}
+    i, err := strconv.ParseInt(content, 10, 32)
+    if err ==nil {
+
 	content = strings.ToLower(content)
 	switch {
 	case strings.Contains(content, "ltc"):
