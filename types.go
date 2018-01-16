@@ -16,6 +16,7 @@ type WxAutoMsg struct {
 }
 
 type StoreMsg struct {
+	Symbol string  `json:"symbol"`
 	Curr   float64 `json:"curr"`
 	God    float64 `json:"god"`
 	Step   float64 `json:"step"`
@@ -24,4 +25,14 @@ type StoreMsg struct {
 	Now    string  `json:"now"`
 	Buy    int     `json:"buy"`
 	Sell   int     `json:"sell"`
+}
+
+type BuzzStoreMsg struct {
+	Symbol     string  `json:"symbol"`
+	GodPrice   float64 `json:"god_price"`
+	LastPrice  float64 `json:"last_price"`
+	ChangeRate float64 `json:"rate"` //default 5%
+	Amount     float64 `json:"amount"`
+	BuyCount   int64   `json:"buy_count"`
+	SellCount  int64   `json:"sell_count"`
 }

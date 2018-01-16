@@ -49,7 +49,19 @@ func GetLastStatus(symbol string) string {
 	sell, _ := c.Get(key_sell).Result()
 
 	Parse(m, jsonData, buy, sell)
+    m.Symbol = symbol
+	bindata, _ := json.MarshalIndent(m, "", "  ")
+	return string(bindata)
+}
 
+func GetBuzzStore(symbol string) string {
+	c := redis.NewClient(&redis.Options{
+		Addr: "127.0.0.1:6379",
+	})
+	var m = &BuzzStoreMsg{}
+	jsonData, _ := c.Get(symbol).Result()
+	json.Unmarshal([]byte(jsonData), m)
+    m.Symbol = symbol
 	bindata, _ := json.MarshalIndent(m, "", "  ")
 	return string(bindata)
 }
@@ -67,7 +79,11 @@ func OnContent(user string, content string) (reply string) {
 	i, err := strconv.ParseInt(content, intBase, intBit)
 	if err == nil {
 		if content, ok = IDMap[i]; ok {
-			reply = GetLastStatus(content)
+			if i < 3 {
+				reply = GetLastStatus(content)
+			} else {
+				reply = GetBuzzStore(content)
+			}
 		} else {
 			reply = "invalid number"
 		}
