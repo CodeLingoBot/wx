@@ -1,13 +1,24 @@
 package main
 
-var (
-    IDMap = map[int]string{
-        1:"eos_usdt",
-        2:"ltc_usdt",
-        3:"bch_usdt",
-        4:"etc_usdt",
-    }
+import (
+	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/go-redis/redis"
+	"github.com/morya/utils/log"
 )
+
+var (
+	IDMap = map[int64]string{
+		1: "eos_usdt",
+		2: "ltc_usdt",
+		3: "bch_usdt",
+		4: "etc_usdt",
+	}
+)
+
 func Parse(m *StoreMsg, val string, buy, sell string) {
 	err := json.Unmarshal([]byte(val), m)
 	if err != nil {
@@ -48,19 +59,30 @@ func OnContent(user string, content string) (reply string) {
 		reply = "bye bye"
 		return
 	}
-    i, err := strconv.ParseInt(content, 10, 32)
-    if err ==nil {
 
-	content = strings.ToLower(content)
-	switch {
-	case strings.Contains(content, "ltc"):
-		reply = GetLastStatus("ltc_usdt")
+	var ok bool
+	var intBase int = 10
+	var intBit int = 32
 
-	case strings.Contains(content, "bch"):
-		reply = GetLastStatus("bch_usdt")
+	i, err := strconv.ParseInt(content, intBase, intBit)
+	if err == nil {
+		if content, ok = IDMap[i]; ok {
+			reply = GetLastStatus(content)
+		} else {
+			reply = "invalid number"
+		}
+	} else {
+		content = strings.ToLower(content)
+		switch {
+		case strings.Contains(content, "ltc"):
+			reply = GetLastStatus("ltc_usdt")
 
-	default:
-		reply = GetLastStatus("eos_usdt")
+		case strings.Contains(content, "bch"):
+			reply = GetLastStatus("bch_usdt")
+
+		default:
+			reply = GetLastStatus("eos_usdt")
+		}
 	}
 	return
 }
@@ -76,4 +98,3 @@ func OnTextMsg(recv *WxAutoMsg) (send *WxAutoMsg) {
 	send.Content = OnContent(recv.FromUserName, recv.Content)
 	return
 }
-
