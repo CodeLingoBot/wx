@@ -1,6 +1,11 @@
+target:=wx
 
-all: wx
+all: $(target)
 
-wx: *.go
-	go build github.com/morya/wx
-	cp ${GOPATH}/src/github.com/morya/wx/wx ~/bin/
+$(target): *.go
+	go build .
+
+install:$(target)
+	@rm $(HOME)/bin/$(target)
+	@cp $(GOPATH)/src/github.com/morya/$(target)/$(target) ~/bin/
+	@cd $(HOME); supervisorctl restart $(target):

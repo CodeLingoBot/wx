@@ -79,17 +79,16 @@ func OnContent(user string, content string) (reply string) {
 	i, err := strconv.ParseInt(content, intBase, intBit)
 	if err == nil {
 		if content, ok = IDMap[i]; ok {
-			if i < 3 {
-				reply = GetLastStatus(content)
-			} else {
-				reply = GetBuzzStore(content)
-			}
+            reply = GetBuzzStore(content)
 		} else {
 			reply = "invalid number"
 		}
 	} else {
 		content = strings.ToLower(content)
 		switch {
+		case strings.Contains(content, "etc"):
+			reply = GetLastStatus("etc_usdt")
+
 		case strings.Contains(content, "ltc"):
 			reply = GetLastStatus("ltc_usdt")
 
