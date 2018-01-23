@@ -19,6 +19,12 @@ var (
 	}
 )
 
+var (
+rstore = redis.NewClient(&redis.Options{
+		Addr: "127.0.0.1:6379",
+	})
+)
+
 func Parse(m *StoreMsg, val string, buy, sell string) {
 	err := json.Unmarshal([]byte(val), m)
 	if err != nil {
@@ -55,11 +61,17 @@ func GetLastStatus(symbol string) string {
 }
 
 func GetBuzzStore(symbol string) string {
-	c := redis.NewClient(&redis.Options{
-		Addr: "127.0.0.1:6379",
-	})
 	var m = &BuzzStoreMsg{}
 	jsonData, _ := c.Get(symbol).Result()
+	json.Unmarshal([]byte(jsonData), m)
+    m.Symbol = symbol
+	bindata, _ := json.MarshalIndent(m, "", "  ")
+	return string(bindata)
+}
+
+func GetAllKey() string {
+	var m = &BuzzStoreMsg{}
+	jsonData, _ := rstore.Hgetall(symbol).Result()
 	json.Unmarshal([]byte(jsonData), m)
     m.Symbol = symbol
 	bindata, _ := json.MarshalIndent(m, "", "  ")
@@ -78,6 +90,9 @@ func OnContent(user string, content string) (reply string) {
 
 	i, err := strconv.ParseInt(content, intBase, intBit)
 	if err == nil {
+        if i == 0 {
+            reply = GetAllKey()
+        }
 		if content, ok = IDMap[i]; ok {
             reply = GetBuzzStore(content)
 		} else {
